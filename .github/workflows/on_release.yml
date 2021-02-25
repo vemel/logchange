@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  deploy:
+  bump:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -13,30 +13,67 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: "3.9"
-      - name: Extract variables from env
-        id: vars
-        run: |
-          echo "GitHub ref ${GITHUB_REF}"
-          VERSION=`echo "${GITHUB_REF}" | cut -f 3 -d "/"`
-
-          echo Version: ${VERSION}
-          echo "##[set-output name=version;]$(echo ${VERSION})"
+      - name: Get Release tag
+        uses: actions/github-script@v3
+        id: tag
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const result = context.payload.release.tag_name
+            console.log(result)
+            return result
+      - name: Get Release body
+        uses: actions/github-script@v3
+        id: body
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const result = context.payload.release.body
+            console.log(result)
+            return result
       - name: Install dependencies
         run: |
-          python -m pip install -U poetry pip wheel
+          python -m pip install -U poetry pip wheel logchange newversion
           python -m poetry config virtualenvs.create false
           python -m poetry install -n
+      - name: Get Release version
+        id: version
+        env:
+          TAG: ${{ steps.tag.outputs.result }}
+        run: |
+          VERSION=`echo ${TAG} | tr '"' ' ' | python -m newversion`
+          echo "${VERSION}"
+          echo "::set-output name=result::${VERSION}"
+      - name: Update changelog
+        env:
+          VERSION: ${{ steps.version.outputs.result }}
+          NOTES: "${{ steps.body.outputs.result }}"
+        run: |
+          echo "${NOTES}" | python -m logchange add "${VERSION}"
       - name: Bump version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.vars.outputs.version }}
+          VERSION: ${{ steps.version.outputs.result }}
         run: |
-          scripts/bump_version.sh
-          python -m poetry install -n
+          python -m poetry version "${VERSION}"
+          sed -i -E "s/^version = .+/version = ${VERSION}/" setup.cfg
+      - name: Commit changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.result }}
+        run: |
+          git config --global user.email "volshebnyi@gmail.com"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git add pyproject.toml
+          git add setup.cfg
+          git add CHANGELOG.md
+          git commit -m "Bump version to ${VERSION}"
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/vemel/logchange.git --tags
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/vemel/logchange.git HEAD:main
       - name: Publish to PyPI
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: "${{ secrets.PYPI_USERNAME }}"
+          TWINE_PASSWORD: "${{ secrets.PYPI_PASSWORD }}"
         run: |
+          python -m poetry install -n
           poetry build
           twine upload  --non-interactive dist/*

@@ -12,3 +12,5 @@ and this project adheres to
 - test
 - test
 - test
+
+## [1.6.0] - 2021-02-25
