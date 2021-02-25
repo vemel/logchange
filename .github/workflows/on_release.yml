@@ -49,7 +49,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.result }}
           NOTES: "${{ steps.body.outputs.result }}"
         run: |
-          echo "${NOTES}" | python -m logchange add "${VERSION}"
+          echo "${NOTES}" | sed -e 's/^"//' -e 's/"$//' | python -m logchange add "${VERSION}"
       - name: Bump version
         env:
           VERSION: ${{ steps.version.outputs.result }}
