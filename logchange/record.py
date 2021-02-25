@@ -15,7 +15,7 @@ class Record:
     def __init__(
         self,
         version: Version,
-        body: RecordBody,
+        body: str,
         created: str,
     ):
         self.version = version
@@ -40,7 +40,7 @@ class Record:
         return f"## [{self.version}]"
 
     def render(self) -> str:
-        parts = [self._render_title(), self.body.render()]
+        parts = [self._render_title(), self.body]
         parts = [i for i in parts if i]
         return self.PARTS_DELIM.join(parts)
 
@@ -57,7 +57,7 @@ class Record:
     def parse(cls: Type[_R], text: str) -> _R:
         text = dedent(text)
         if not text:
-            return cls(Version.zero(), created="", body=RecordBody())
+            return cls(Version.zero(), created="", body="")
 
         try:
             title, lines = text.split("\n", 1)
@@ -69,17 +69,19 @@ class Record:
         return cls(
             version=Version(version),
             created=created,
-            body=RecordBody.parse(lines),
+            body=lines,
         )
 
     def is_empty(self) -> bool:
-        return self.body.is_empty()
+        return self.body.strip() == ""
 
     def set_section(self, title: str, body: str) -> None:
-        section = self.body.get_section(title)
+        record_body = RecordBody.parse(self.body)
+        section = record_body.get_section(title)
         was_empty = section.is_empty()
         section.body = body
-        self.body.set_section(title, body)
+        record_body.set_section(title, body)
+        self.body = record_body.render()
         if was_empty:
             if body:
                 self.logger.info(f"{self.name} `{section.name}` section added")
@@ -90,9 +92,11 @@ class Record:
                 self.logger.info(f"{self.name} `{section.name}` section deleted")
 
     def append_section(self, title: str, body: str) -> None:
-        section = self.body.get_section(title)
+        record_body = RecordBody.parse(self.body)
+        section = record_body.get_section(title)
         was_empty = section.is_empty()
         section.append_lines(body)
+        self.body = record_body.render()
         if was_empty:
             if body:
                 self.logger.info(f"{self.name} `{section.name}` section added")
@@ -100,11 +104,28 @@ class Record:
             self.logger.info(f"{self.name} `{section.name}` section updated")
 
     def set_body(self, text: str) -> None:
+        old_body = RecordBody.parse(self.body)
         new_body = RecordBody.parse(text)
-        for section in new_body.sections.values():
-            self.set_section(section.title, section.body)
+        self.body = new_body.render()
+        self.log_changes(old_body, new_body)
 
     def merge_body(self, text: str) -> None:
-        new_body = RecordBody.parse(text)
-        for section in new_body.sections.values():
-            self.append_section(section.title, section.body)
+        old_body = RecordBody.parse(self.body)
+        change_body = RecordBody.parse(text)
+        new_body = old_body.merge(change_body)
+        self.body = new_body.render()
+        self.log_changes(old_body, new_body)
+
+    def log_changes(self, old_body: RecordBody, new_body: RecordBody) -> None:
+        for section_name, old_section in old_body.sections.items():
+            new_section = new_body.get_section(section_name)
+            if new_section.body == old_section.body:
+                continue
+            if old_section.is_empty():
+                if not new_section.is_empty():
+                    self.logger.info(f"{self.name} `{new_section.name}` section added")
+            else:
+                if new_section.is_empty():
+                    self.logger.info(f"{self.name} `{new_section.name}` section deleted")
+                else:
+                    self.logger.info(f"{self.name} `{new_section.name}` section updated")

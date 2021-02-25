@@ -12,6 +12,7 @@
         - [RecordBody().merge](#recordbodymerge)
         - [RecordBody.parse](#recordbodyparse)
         - [RecordBody().render](#recordbodyrender)
+        - [RecordBody().sanitize](#recordbodysanitize)
         - [RecordBody().set_section](#recordbodyset_section)
 
 ## RecordBody
@@ -20,12 +21,16 @@
 
 ```python
 class RecordBody():
-    def __init__(sections: Iterable[RecordSection] = ()) -> None:
+    def __init__(
+        sections: Iterable[RecordSection] = (),
+        prefix: str = '',
+        postfix: str = '',
+    ) -> None:
 ```
 
 ### RecordBody().append_lines
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L51)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L65)
 
 ```python
 def append_lines(title: str, body: str) -> None:
@@ -33,7 +38,7 @@ def append_lines(title: str, body: str) -> None:
 
 ### RecordBody().append_to_all
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L54)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L68)
 
 ```python
 def append_to_all(appendix: str) -> None:
@@ -41,7 +46,7 @@ def append_to_all(appendix: str) -> None:
 
 ### RecordBody().bump_version
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L20)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L27)
 
 ```python
 def bump_version(old_version: Version) -> Version:
@@ -49,7 +54,7 @@ def bump_version(old_version: Version) -> Version:
 
 ### RecordBody().get_section
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L33)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L40)
 
 ```python
 def get_section(title: str) -> RecordSection:
@@ -61,7 +66,7 @@ def get_section(title: str) -> RecordSection:
 
 ### RecordBody().is_empty
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L97)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L121)
 
 ```python
 def is_empty() -> bool:
@@ -69,7 +74,7 @@ def is_empty() -> bool:
 
 ### RecordBody().merge
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L59)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L73)
 
 ```python
 def merge(other: _R) -> _R:
@@ -77,7 +82,7 @@ def merge(other: _R) -> _R:
 
 ### RecordBody.parse
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L69)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L83)
 
 ```python
 @classmethod
@@ -86,15 +91,23 @@ def parse(text: str) -> _R:
 
 ### RecordBody().render
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L36)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L43)
 
 ```python
 def render() -> str:
 ```
 
+### RecordBody().sanitize
+
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L128)
+
+```python
+def sanitize() -> None:
+```
+
 ### RecordBody().set_section
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L47)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/record_body.py#L61)
 
 ```python
 def set_section(title: str, body: str) -> None:

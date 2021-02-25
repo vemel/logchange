@@ -17,7 +17,7 @@
 
 ## ChangeLog
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L12)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L11)
 
 ```python
 class ChangeLog():
@@ -31,7 +31,7 @@ class ChangeLog():
 
 ### ChangeLog().add_release
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L100)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L96)
 
 ```python
 def add_release(record: Record) -> None:
@@ -43,7 +43,7 @@ def add_release(record: Record) -> None:
 
 ### ChangeLog().format_released
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L93)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L89)
 
 ```python
 def format_released() -> None:
@@ -51,7 +51,7 @@ def format_released() -> None:
 
 ### ChangeLog().get_latest
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L70)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L66)
 
 ```python
 def get_latest() -> Optional[Record]:
@@ -59,7 +59,7 @@ def get_latest() -> Optional[Record]:
 
 ### ChangeLog().get_record
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L79)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L75)
 
 ```python
 def get_record(version: Version) -> Optional[Record]:
@@ -67,7 +67,7 @@ def get_record(version: Version) -> Optional[Record]:
 
 ### ChangeLog().get_unreleased
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L76)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L72)
 
 ```python
 def get_unreleased() -> Record:
@@ -79,7 +79,7 @@ def get_unreleased() -> Record:
 
 ### ChangeLog().iterate_records
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L86)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L82)
 
 ```python
 def iterate_records() -> Iterator[Record]:
@@ -87,7 +87,7 @@ def iterate_records() -> Iterator[Record]:
 
 ### ChangeLog.parse
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L34)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L33)
 
 ```python
 @classmethod
@@ -96,7 +96,7 @@ def parse(text: str) -> _R:
 
 ### ChangeLog().released
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L27)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L26)
 
 ```python
 @property
@@ -105,7 +105,7 @@ def released() -> List[Record]:
 
 ### ChangeLog().render
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L62)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L58)
 
 ```python
 def render() -> str:
@@ -113,7 +113,7 @@ def render() -> str:
 
 ### ChangeLog().update_release
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L107)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/changelog.py#L103)
 
 ```python
 def update_release(record: Record) -> None:

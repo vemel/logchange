@@ -10,6 +10,7 @@ import pkg_resources
 from newversion import Version, VersionError
 
 from logchange.constants import LATEST, SECTION_ALL, SECTION_TITLES, UNRELEASED
+from logchange.utils import dedent
 
 
 def get_changelog_path(value: str) -> Path:
@@ -45,7 +46,7 @@ def get_stdin() -> str:
     if sys.stdin.isatty():
         return ""
 
-    return sys.stdin.read()
+    return dedent(sys.stdin.read())
 
 
 def parse_args(args: Sequence[str]) -> argparse.Namespace:
@@ -213,10 +214,125 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         help="Full path to changelog file. Default: ./CHANGELOG.md",
     )
 
-    result = parser.parse_args(args)
+    parser_added = subparsers.add_parser("added", help="Add entry to Unreleased Added section")
+    parser_added.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_added.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
 
-    if hasattr(result, "input") and result.input is None:
-        result.input = get_stdin()
+    parser_changed = subparsers.add_parser(
+        "changed", help="Add entry to Unreleased Changed section"
+    )
+    parser_changed.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_changed.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
+    parser_deprecated = subparsers.add_parser(
+        "deprecated", help="Add entry to Unreleased Deprecated section"
+    )
+    parser_deprecated.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_deprecated.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
+    parser_removed = subparsers.add_parser(
+        "removed", help="Add entry to Unreleased Removed section"
+    )
+    parser_removed.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_removed.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
+    parser_fixed = subparsers.add_parser("fixed", help="Add entry to Unreleased Fixed section")
+    parser_fixed.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_fixed.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
+    parser_security = subparsers.add_parser(
+        "security", help="Add entry to Unreleased Security section"
+    )
+    parser_security.add_argument(
+        "input",
+        nargs="*",
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_security.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
+    parser_release = subparsers.add_parser(
+        "release", help="Convert Unreleased section to a new release"
+    )
+    parser_release.add_argument(
+        "version",
+        type=Version,
+        help="Release version.",
+    )
+    parser_release.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+    parser_release.add_argument(
+        "--created",
+        default="",
+        help="Created date in `YYYY-MM-DD` format.",
+    )
+
+    result = parser.parse_args(args)
+    if hasattr(result, "input"):
+        if isinstance(result.input, list):
+            result.input = " ".join(result.input)
+        if not result.input:
+            result.input = get_stdin()
 
     if result.command == "get" and not result.changelog_path.exists():
         raise argparse.ArgumentTypeError(

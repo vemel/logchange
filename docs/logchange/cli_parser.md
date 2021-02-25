@@ -12,7 +12,7 @@ Main CLI parser.
 
 ## get_changelog_path
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L15)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L16)
 
 ```python
 def get_changelog_path(value: str) -> Path:
@@ -20,7 +20,7 @@ def get_changelog_path(value: str) -> Path:
 
 ## get_stdin
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L38)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L39)
 
 ```python
 def get_stdin() -> str:
@@ -34,7 +34,7 @@ Parsed version.
 
 ## get_version_latest_or_unreleased
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L24)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L25)
 
 ```python
 def get_version_latest_or_unreleased(value: str) -> str:
@@ -42,7 +42,7 @@ def get_version_latest_or_unreleased(value: str) -> str:
 
 ## parse_args
 
-[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L51)
+[[find in source code]](https://github.com/vemel/logchange/blob/main/logchange/cli_parser.py#L52)
 
 ```python
 def parse_args(args: Sequence[str]) -> argparse.Namespace:

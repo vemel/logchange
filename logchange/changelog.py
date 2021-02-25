@@ -3,7 +3,6 @@ from typing import Iterator, List, Optional, Type, TypeVar
 from newversion import Version
 
 from logchange.record import Record
-from logchange.record_body import RecordBody
 from logchange.utils import dedent
 
 _R = TypeVar("_R", bound="ChangeLog")
@@ -22,7 +21,7 @@ class ChangeLog:
         self.head = head
         self._released = released.strip()
         self._released_records: List[Record] = []
-        self._unreleased = Record(Version.zero(), created="", body=RecordBody.parse(unreleased))
+        self._unreleased = Record(Version.zero(), created="", body=unreleased)
 
     @property
     def released(self) -> List[Record]:
@@ -110,6 +109,7 @@ class ChangeLog:
             if record.version == old_record.version:
                 old_record.body = record.body
                 old_record.created = record.created
+                self.format_released()
                 return
 
         self.add_release(record)

@@ -6,3 +6,6 @@ and this project adheres to
 [PEP 440 -- Version Identification and Dependency Specification](https://www.python.org/dev/peps/pep-0440/).
 
 ## [Unreleased]
+
+## [0.1.1] - 2021-02-26
+Initial release

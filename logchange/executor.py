@@ -87,15 +87,22 @@ class Executor:
         Returns:
             String output.
         """
-        commands = dict(
-            init=self._command_init,
-            add=self._command_add,
-            set=self._command_set,
-            get=self._command_get,
-            format=self._command_format,
-            list=self._command_list,
-            version=self._command_version,
-        )
+        commands = {
+            "init": self._command_init,
+            "add": self._command_add,
+            "set": self._command_set,
+            "get": self._command_get,
+            "format": self._command_format,
+            "list": self._command_list,
+            "version": self._command_version,
+            "added": self._command_add_unreleased,
+            "changed": self._command_add_unreleased,
+            "deprecated": self._command_add_unreleased,
+            "removed": self._command_add_unreleased,
+            "fixed": self._command_add_unreleased,
+            "security": self._command_add_unreleased,
+            "release": self._command_release,
+        }
         command = self.config.command
         if command not in commands:
             raise ExecutorError(f"Unknown command: {command}")
@@ -145,11 +152,13 @@ class Executor:
             return record
 
         self.logger.info(f"Record {release_name} not found, added")
-        return Record(
-            version=Version(release_name),
-            body=RecordBody(),
-            created=self.get_today(),
-        )
+        return Record(Version(release_name), "", self.get_today())
+
+    def _command_add_unreleased(self) -> str:
+        self.config.section = self.config.command
+        self.config.name = UNRELEASED
+        self.config.created = self.get_today()
+        return self._command_add()
 
     def _command_add(self) -> str:
         release_name = self.release_name
@@ -203,7 +212,7 @@ class Executor:
 
         if self.config.section == SECTION_ALL:
             return record.render()
-        section = record.body.get_section(self.config.section)
+        section = RecordBody.parse(record.body).get_section(self.config.section)
         if section:
             return section.body
 
@@ -211,6 +220,7 @@ class Executor:
 
     def _command_format(self) -> str:
         record_body = RecordBody.parse(self.input)
+        record_body.sanitize()
         return record_body.render()
 
     def _command_list(self) -> str:
@@ -222,6 +232,24 @@ class Executor:
         if self.input:
             record_body = RecordBody.parse(self.input)
         else:
-            record_body = self.changelog.get_unreleased().body
+            record_body = RecordBody.parse(self.changelog.get_unreleased().body)
 
         return record_body.bump_version(old_version).dumps()
+
+    def _command_release(self) -> str:
+        changelog = self.changelog
+        record = changelog.get_record(self.config.version)
+
+        if record is None:
+            record = Record(self.config.version, "", self.get_today())
+
+        if self.config.created:
+            record.created = self.config.created
+
+        unreleased = changelog.get_unreleased()
+        record.merge_body(unreleased.body)
+        unreleased.body = ""
+
+        changelog.update_release(record)
+        self.save_changelog(changelog)
+        return ""

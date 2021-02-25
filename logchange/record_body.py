@@ -12,8 +12,15 @@ _R = TypeVar("_R", bound="RecordBody")
 class RecordBody:
     PARTS_DELIM = "\n\n"
 
-    def __init__(self, sections: Iterable[RecordSection] = ()) -> None:
+    def __init__(
+        self,
+        sections: Iterable[RecordSection] = (),
+        prefix: str = "",
+        postfix: str = "",
+    ) -> None:
         self.sections = {i: RecordSection(i, "") for i in SECTION_TITLES}
+        self.prefix = prefix
+        self.postfix = postfix
         for section in sections:
             self.append_lines(section.title, section.body)
 
@@ -35,11 +42,18 @@ class RecordBody:
 
     def render(self) -> str:
         parts = []
+
+        if self.prefix:
+            parts.append(self.prefix)
+
         for section_title in SECTION_TITLES:
             section = self.get_section(section_title)
             if section.is_empty():
                 continue
             parts.append(section.render())
+
+        if self.postfix:
+            parts.append(self.postfix)
 
         parts = [i for i in parts if i]
         return self.PARTS_DELIM.join(parts)
@@ -71,27 +85,37 @@ class RecordBody:
         text = dedent(text)
         title = ""
         section_lines = []
+        prefix_lines = []
+        postfix_lines = []
         codeblock = False
         result = cls()
         for line in text.splitlines():
             if line.startswith("```"):
                 codeblock = not codeblock
-            if codeblock:
-                continue
-            if line.startswith("#") and " " in line:
-                if section_lines:
-                    result.append_lines(title, dedent("\n".join(section_lines)))
-                    section_lines.clear()
-                new_title = line.split()[1].lower()
-                if new_title in SECTION_TITLES:
-                    title = new_title
-                continue
+            if not codeblock:
+                if line.startswith("#") and " " in line:
+                    if section_lines:
+                        result.append_lines(title, dedent("\n".join(section_lines)))
+                        section_lines.clear()
+                    new_title = line.split()[1].lower()
+                    if new_title in SECTION_TITLES:
+                        title = new_title
+                        continue
+                    else:
+                        title = ""
 
             if title:
                 section_lines.append(line)
+            else:
+                if result.is_empty():
+                    prefix_lines.append(line)
+                else:
+                    postfix_lines.append(line)
 
         if section_lines:
             result.append_lines(title, dedent("\n".join(section_lines)))
+        result.prefix = dedent("\n".join(prefix_lines))
+        result.postfix = dedent("\n".join(postfix_lines))
         return result
 
     def is_empty(self) -> bool:
@@ -100,3 +124,7 @@ class RecordBody:
                 return False
 
         return True
+
+    def sanitize(self) -> None:
+        self.prefix = ""
+        self.postfix = ""
