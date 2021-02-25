@@ -65,7 +65,7 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         description="Keep-a-changelog manager",
     )
     parser.add_argument("-V", "--version", action="version", version=version, help="Show version")
-    subparsers = parser.add_subparsers(help="Available subcommands", dest="command")
+    subparsers = parser.add_subparsers(help="Available subcommands", dest="command", required=True)
 
     parser_init = subparsers.add_parser("init", help="Create CHANGELOG.md")
     parser_init.add_argument(

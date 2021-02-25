@@ -54,9 +54,6 @@ class ChangeLog:
         )
 
     def _render_released(self) -> str:
-        if self._released_records:
-            return "\n\n".join([i.render() for i in self._released_records])
-
         return self._released
 
     def render(self) -> str:
