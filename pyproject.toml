@@ -1,34 +1,6 @@
 [tool.poetry]
 name = "logchange"
 version = "0.1.2"
-description = "Keep-a-changelog manager"
-authors = ["Vlad Emelianov <vlad.emelianov.nz@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-homepage = "https://github.com/vemel/logchange"
-include = ["LICENSE"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: Console",
-    "License :: OSI Approved :: MIT License",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Typing :: Typed",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
-keywords = ["version", "pep440"]
-
-[tool.poetry.urls]
-"Documentation" = "https://logchange.readthedocs.io/en/latest/"
-"Source" = "https://github.com/vemel/logchange"
-"Tracker" = "https://github.com/vemel/logchange/issues"
 
 [tool.poetry.dependencies]
 python = "^3.6.10"
@@ -46,8 +18,8 @@ codecov = "^2.1.11"
 twine = "^3.3.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "setuptools"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.coverage.report]
 exclude_lines = [

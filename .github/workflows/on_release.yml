@@ -1,4 +1,4 @@
-name: Bump version and publish
+name: Bump version, update CHANGELOG.md and publish
 
 on:
   release:
@@ -33,9 +33,7 @@ jobs:
             return result
       - name: Install dependencies
         run: |
-          python -m pip install -U poetry pip wheel logchange newversion
-          python -m poetry config virtualenvs.create false
-          python -m poetry install -n
+          python -m pip install -U pip wheel logchange newversion
       - name: Get Release version
         id: version
         env:
@@ -44,7 +42,7 @@ jobs:
           VERSION=`echo ${TAG} | tr '"' ' ' | python -m newversion`
           echo "${VERSION}"
           echo "::set-output name=result::${VERSION}"
-      - name: Update changelog
+      - name: Update CHANGELOG.md
         env:
           VERSION: ${{ steps.version.outputs.result }}
           NOTES: "${{ steps.body.outputs.result }}"
@@ -55,8 +53,12 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.result }}
         run: |
-          python -m poetry version "${VERSION}"
-          sed -i -E "s/^version = .+/version = ${VERSION}/" setup.cfg
+          if [[-f pyproject.toml ]]; then
+            sed -i -E "s/^version = \".+/version = \"${VERSION}\"/" pyproject.toml
+          fi
+          if [[-f setup.cfg ]]; then
+            sed -i -E "s/^version = .+/version = ${VERSION}/" setup.cfg
+          fi
       - name: Commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,6 +77,5 @@ jobs:
           TWINE_USERNAME: "${{ secrets.PYPI_USERNAME }}"
           TWINE_PASSWORD: "${{ secrets.PYPI_PASSWORD }}"
         run: |
-          python -m poetry install -n
-          poetry build
+          python setup.py build sdist bdist_wheel
           twine upload  --non-interactive dist/*
