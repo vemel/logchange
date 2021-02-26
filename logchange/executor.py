@@ -95,6 +95,7 @@ class Executor:
             "format": self._command_format,
             "list": self._command_list,
             "version": self._command_version,
+            "rc_version": self._command_rc_version,
             "added": self._command_add_unreleased,
             "changed": self._command_add_unreleased,
             "deprecated": self._command_add_unreleased,
@@ -235,6 +236,15 @@ class Executor:
             record_body = RecordBody.parse(self.changelog.get_unreleased().body)
 
         return record_body.bump_version(old_version).dumps()
+
+    def _command_rc_version(self) -> str:
+        old_version: Version = self.config.version
+        if self.input:
+            record_body = RecordBody.parse(self.input)
+        else:
+            record_body = RecordBody.parse(self.changelog.get_unreleased().body)
+
+        return record_body.bump_rc_version(old_version).dumps()
 
     def _command_release(self) -> str:
         changelog = self.changelog

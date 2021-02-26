@@ -214,6 +214,28 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         help="Full path to changelog file. Default: ./CHANGELOG.md",
     )
 
+    parser_rc_version = subparsers.add_parser(
+        "rc_version", help="Bump RC version according to release notes"
+    )
+    parser_rc_version.add_argument(
+        "version",
+        type=Version,
+        help="Release version",
+    )
+    parser_rc_version.add_argument(
+        "-i",
+        "--input",
+        default=None,
+        help="Change notes, can be provided as a pipe-in as well.",
+    )
+    parser_rc_version.add_argument(
+        "-p",
+        "--changelog-path",
+        type=get_changelog_path,
+        default=Path.cwd() / "CHANGELOG.md",
+        help="Full path to changelog file. Default: ./CHANGELOG.md",
+    )
+
     parser_added = subparsers.add_parser("added", help="Add entry to Unreleased Added section")
     parser_added.add_argument(
         "input",

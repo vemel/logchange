@@ -37,6 +37,13 @@ class RecordBody:
 
         return old_version.bump_micro()
 
+    def bump_rc_version(self, old_version: Version) -> Version:
+        new_version = self.bump_version(old_version)
+        if old_version.get_stable() == new_version:
+            return old_version.bump_prerelease()
+
+        return new_version.replace(rc=1)
+
     def get_section(self, title: str) -> RecordSection:
         return self.sections[title]
 
