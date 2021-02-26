@@ -6,6 +6,8 @@ and this project adheres to
 [PEP 440 -- Version Identification and Dependency Specification](https://www.python.org/dev/peps/pep-0440/).
 
 ## [Unreleased]
+
+## [0.1.2rc1] - 2021-02-26
 ### Added
 - `added <text>` CLI command to update `Unreleased` section
 - `changed <text>` CLI command to update `Unreleased` section
