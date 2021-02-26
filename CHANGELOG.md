@@ -6,6 +6,23 @@ and this project adheres to
 [PEP 440 -- Version Identification and Dependency Specification](https://www.python.org/dev/peps/pep-0440/).
 
 ## [Unreleased]
+### Added
+- `added <text>` CLI command to update `Unreleased` section
+- `changed <text>` CLI command to update `Unreleased` section
+- `deprecated <text>` CLI command to update `Unreleased` section
+- `removed <text>` CLI command to update `Unreleased` section
+- `fixed <text>` CLI command to update `Unreleased` section
+- `security <text>` CLI command to update `Unreleased` section
+- `release <version>` CLI command to move `Unreleased` section to release notes
+
+### Changed
+- Release notes can now have text other than keep-a-changelog entries
+- `get` command no longer raises an error on non-existing `CHANGELOG.md`
+
+### Fixed
+- Empty releases were not added to changelog
+- Codeblocks are no longer removed from release notes
+- Indented sections were not parsed properly
 
 ## [0.1.1] - 2021-02-26
 Initial release

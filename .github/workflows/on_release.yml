@@ -50,6 +50,7 @@ jobs:
           NOTES: "${{ steps.body.outputs.result }}"
         run: |
           echo "${NOTES}" | sed -e 's/^"//' -e 's/"$//' | python -m logchange add "${VERSION}"
+          python -m logchange set unreleased -i ""
       - name: Bump version
         env:
           VERSION: ${{ steps.version.outputs.result }}

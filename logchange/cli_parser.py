@@ -334,9 +334,4 @@ def parse_args(args: Sequence[str]) -> argparse.Namespace:
         if not result.input:
             result.input = get_stdin()
 
-    if result.command == "get" and not result.changelog_path.exists():
-        raise argparse.ArgumentTypeError(
-            "CHANGELOG.md does not exist in current folder, run `logchange init`"
-        )
-
     return result
