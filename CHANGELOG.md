@@ -18,6 +18,7 @@ and this project adheres to
 ### Changed
 - Release notes can now have text other than keep-a-changelog entries
 - `get` command no longer raises an error on non-existing `CHANGELOG.md`
+- Added support for Python 3.6.10+
 
 ### Fixed
 - Empty releases were not added to changelog
