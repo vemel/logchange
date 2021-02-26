@@ -54,10 +54,10 @@ jobs:
           VERSION: ${{ steps.version.outputs.result }}
         run: |
           if [[-f pyproject.toml ]]; then
-            sed -i -E "s/^version = \".+/version = \"${VERSION}\"/" pyproject.toml
+            sed -i -E "s/^version\s*=\s*\".+/version = \"${VERSION}\"/" pyproject.toml
           fi
           if [[-f setup.cfg ]]; then
-            sed -i -E "s/^version = .+/version = ${VERSION}/" setup.cfg
+            sed -i -E "s/^version \s*=\s*.+/version = ${VERSION}/" setup.cfg
           fi
       - name: Commit changes
         env:

@@ -34,6 +34,8 @@ logchange add 0.2.0 -i `cat NOTES_0.2.0.md`
 
 # update existing or create a new section in latest release
 logchange add latest added -i 'New feature'
+# or
+logchange add latest -i 'Added: New feature'
 
 # set unreleased section
 logchange set unreleased fixed -i 'Unreleased fix'

@@ -1,4 +1,4 @@
-from typing import Iterable, Type, TypeVar
+from typing import Iterable, Type, TypeVar, Optional
 
 from newversion import Version
 
@@ -80,11 +80,34 @@ class RecordBody:
 
         return result
 
+    @staticmethod
+    def _parse_prefix_section(line: str) -> str:
+        if ":" not in line:
+            return ""
+
+        line_lower = line.lower()
+        for section_title in SECTION_TITLES:
+            if line_lower.startswith(f"{section_title}:"):
+                return section_title
+
+        return ""
+
+    @staticmethod
+    def _parse_header_title(line: str) -> str:
+        if line.startswith("#") and " " in line:
+            title = line.split()[1].lower()
+            if title in SECTION_TITLES:
+                return title
+        return ""
+
+    @staticmethod
+    def _has_header(line: str) -> bool:
+        return line.startswith("#") and " " in line
+
     @classmethod
     def parse(cls: Type[_R], text: str) -> _R:
         text = dedent(text)
         title = ""
-        section_lines = []
         prefix_lines = []
         postfix_lines = []
         codeblock = False
@@ -93,27 +116,24 @@ class RecordBody:
             if line.startswith("```"):
                 codeblock = not codeblock
             if not codeblock:
-                if line.startswith("#") and " " in line:
-                    if section_lines:
-                        result.append_lines(title, dedent("\n".join(section_lines)))
-                        section_lines.clear()
-                    new_title = line.split()[1].lower()
-                    if new_title in SECTION_TITLES:
-                        title = new_title
+                if cls._has_header(line):
+                    title = cls._parse_header_title(line)
+                    if title:
                         continue
-                    else:
-                        title = ""
+
+                prefix_title = cls._parse_prefix_section(line)
+                if prefix_title:
+                    result.append_lines(prefix_title, line[len(prefix_title) + 1:].strip())
+                    continue
 
             if title:
-                section_lines.append(line)
+                result.append_lines(title, line)
             else:
                 if result.is_empty():
                     prefix_lines.append(line)
                 else:
                     postfix_lines.append(line)
 
-        if section_lines:
-            result.append_lines(title, dedent("\n".join(section_lines)))
         result.prefix = dedent("\n".join(prefix_lines))
         result.postfix = dedent("\n".join(postfix_lines))
         return result
