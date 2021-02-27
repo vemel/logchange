@@ -31,10 +31,12 @@ jobs:
       - name: Get release version
         id: version
         env:
-          BODY: ${{ steps.body.outputs.result }}
+          BODY: "${{ steps.body.outputs.result }}"
         run: |
           VERSION=`python setup.py --version | python -m newversion`
+          echo "${BODY}"
           RESULT=`echo "${BODY}" | python -m logchange rc_version ${VERSION}`
+          echo "${RESULT}"
           echo "::set-output name=result::${RESULT}"
       - name: Get or create Release Draft
         id: release
@@ -46,6 +48,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
+            console.log(releases);
             for (const release of releases) {
               if (release.draft) return release;
               break;
@@ -63,8 +66,8 @@ jobs:
       - name: Update Release Draft
         uses: actions/github-script@v3
         env:
-          VERSION: ${{ steps.version.outputs.result }}
-          BODY: ${{ steps.body.outputs.result }}
+          VERSION: "${{ steps.version.outputs.result }}"
+          BODY: "${{ steps.body.outputs.result }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

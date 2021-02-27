@@ -7,7 +7,7 @@ and this project adheres to
 
 ## [Unreleased]
 ### Added
-- `rc_version` CLI command
+- `rc_version` CLI commandd
 
 ### Changed
 - `format` CLI command supports short message format: `Added: my message`
