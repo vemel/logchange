@@ -2,7 +2,7 @@
 name = "logchange"
 version = "0.1.2"
 description = "Keep-a-changelog manager"
-authors = ["Vlad Emelianov<vlad.emelianov.nz@gmail.com>"]
+authors = ["Vlad Emelianov <vlad.emelianov.nz@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6.10"
