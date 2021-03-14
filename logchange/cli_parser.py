@@ -14,7 +14,16 @@ from logchange.utils import dedent
 
 
 def get_changelog_path(value: str) -> Path:
-    path = Path(value)
+    """
+    Get existing path to "CHANGELOG.md" or to its parent folder.
+
+    Arguments:
+        value -- String path.
+
+    Returns:
+        Path to file.
+    """
+    path = Path(value).resolve(strict=False)
 
     if path.exists() and path.is_dir():
         path = path / "CHANGELOG.md"
@@ -23,6 +32,9 @@ def get_changelog_path(value: str) -> Path:
 
 
 def get_version_latest_or_unreleased(value: str) -> str:
+    """
+    Get normalized version or latest or unreleased.
+    """
     value = value.lower()
     if value == UNRELEASED:
         return value

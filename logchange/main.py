@@ -3,11 +3,15 @@ import logging
 import sys
 
 from logchange.cli_parser import parse_args
+from logchange.constants import LOGGER_NAME
 from logchange.executor import Executor, ExecutorError
 
 
 def setup_logging(level: int) -> None:
-    logger = logging.getLogger("logchange")
+    """
+    Setup logging for CLI usage.
+    """
+    logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(level)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(level)

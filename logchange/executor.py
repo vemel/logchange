@@ -9,7 +9,7 @@ from pathlib import Path
 from newversion import Version
 
 from logchange.changelog import ChangeLog
-from logchange.constants import LATEST, NEW_CHANGELOG, SECTION_ALL, UNRELEASED
+from logchange.constants import LATEST, LOGGER_NAME, NEW_CHANGELOG, SECTION_ALL, UNRELEASED
 from logchange.eol_fixer import EOLFixer
 from logchange.record import Record
 from logchange.record_body import RecordBody
@@ -25,44 +25,66 @@ class ExecutorError(Exception):
 class Executor:
     """
     CLI commands executor.
+
+    Arguments:
+        config -- CLI namespace.
     """
 
     def __init__(self, config: argparse.Namespace) -> None:
-        self.config = config
-        self.windows_le = False
-        self.logger = logging.getLogger("logchange")
+        self._config = config
+        self._windows_le = False
+        self._logger = logging.getLogger(LOGGER_NAME)
 
     @property
     def input(self) -> str:
-        self.windows_le = EOLFixer.is_windows(self.config.input)
-        return EOLFixer.to_unix(self.config.input)
+        """
+        Pipe-in input.
+        """
+        self._windows_le = EOLFixer.is_windows(self._config.input)
+        return EOLFixer.to_unix(self._config.input)
 
     @property
     def changelog_path(self) -> Path:
-        return self.config.changelog_path
+        """
+        Path to changelog.
+        """
+        return self._config.changelog_path
 
-    def get_today(self) -> str:
+    @staticmethod
+    def get_today() -> str:
+        """
+        Get today date in `YYYY-MM-DD` format.
+        """
         return datetime.datetime.now().date().strftime("%Y-%m-%d")
 
     @property
     def changelog(self) -> ChangeLog:
+        """
+        Parsed changelog.
+        """
         if not self.changelog_path.exists():
-            self.logger.warning(f"{print_path(self.changelog_path)} does not exists")
+            self._logger.warning(f"{print_path(self.changelog_path)} does not exists")
             return ChangeLog.parse(NEW_CHANGELOG)
 
         text = self.changelog_path.read_text()
-        self.windows_le = EOLFixer.is_windows(text)
+        self._windows_le = EOLFixer.is_windows(text)
         return ChangeLog.parse(EOLFixer.to_unix(text))
 
     def save_changelog(self, changelog: ChangeLog) -> None:
+        """
+        Save changelog back to `CHANGELOG.md`.
+
+        Arguments:
+            changelog -- Changelog to save.
+        """
         self.changelog_path.write_text(self._fix_eol(changelog.render()))
 
     @property
     def release_name(self) -> str:
-        return self.config.name
+        return self._config.name
 
     def _fix_eol(self, text: str) -> str:
-        if not self.windows_le:
+        if not self._windows_le:
             return text
 
         return EOLFixer.to_windows(text)
@@ -104,37 +126,37 @@ class Executor:
             "security": self._command_add_unreleased,
             "release": self._command_release,
         }
-        command = self.config.command
+        command = self._config.command
         if command not in commands:
             raise ExecutorError(f"Unknown command: {command}")
 
-        return self._fix_eol(commands[self.config.command]())
+        return self._fix_eol(commands[self._config.command]())
 
     def _command_init(self) -> str:
         if not self.changelog_path.exists():
             self.changelog_path.write_text(NEW_CHANGELOG)
-            self.logger.info(f"{print_path(self.changelog_path)} created successfully.")
+            self._logger.info(f"{print_path(self.changelog_path)} created successfully.")
             return ""
 
-        if not self.config.format:
-            self.logger.info(
+        if not self._config.format:
+            self._logger.info(
                 f"{print_path(self.changelog_path)} already exists." " Add `-f` to reformat it."
             )
             return ""
 
         text = self.changelog_path.read_text()
-        self.windows_le = EOLFixer.is_windows(text)
+        self._windows_le = EOLFixer.is_windows(text)
         changelog = ChangeLog.parse(EOLFixer.to_unix(text))
         changelog.format_released()
         new_text = changelog.render()
         if new_text == text:
-            self.logger.info(
+            self._logger.info(
                 f"{print_path(self.changelog_path)} is good as it is, you are doing great!"
             )
             return ""
 
         self.changelog_path.write_text(self._fix_eol(changelog.render()))
-        self.logger.info(f"{print_path(self.changelog_path)} reformatted.")
+        self._logger.info(f"{print_path(self.changelog_path)} reformatted.")
         return ""
 
     def _get_record(self, changelog: ChangeLog, release_name: str) -> Record:
@@ -152,13 +174,13 @@ class Executor:
         if record is not None:
             return record
 
-        self.logger.info(f"Record {release_name} not found, added")
+        self._logger.info(f"Record {release_name} not found, added")
         return Record(Version(release_name), "", self.get_today())
 
     def _command_add_unreleased(self) -> str:
-        self.config.section = self.config.command
-        self.config.name = UNRELEASED
-        self.config.created = self.get_today()
+        self._config.section = self._config.command
+        self._config.name = UNRELEASED
+        self._config.created = self.get_today()
         return self._command_add()
 
     def _command_add(self) -> str:
@@ -166,14 +188,14 @@ class Executor:
         changelog = self.changelog
         record = self._get_record(changelog, release_name)
 
-        if self.config.section == SECTION_ALL:
-            record.merge_body(self.input)
+        if self._config.section == SECTION_ALL:
+            record.merge(RecordBody.parse(self.input))
         else:
-            section_name = self.config.section
+            section_name = self._config.section
             record.append_section(section_name, self._as_md_list(self.input))
 
-        if self.config.created:
-            record.created = self.config.created
+        if self._config.created:
+            record.created = self._config.created
 
         changelog.update_release(record)
         self.save_changelog(changelog)
@@ -184,15 +206,15 @@ class Executor:
         changelog = self.changelog
         record = self._get_record(changelog, release_name)
 
-        if self.config.section == SECTION_ALL:
+        if self._config.section == SECTION_ALL:
             record.set_body(self.input)
         else:
-            section_name = self.config.section
+            section_name = self._config.section
             value = self._as_md_list(self.input)
             record.set_section(section_name, value)
 
-        if self.config.created:
-            record.created = self.config.created
+        if self._config.created:
+            record.created = self._config.created
 
         changelog.update_release(record)
         self.save_changelog(changelog)
@@ -200,7 +222,7 @@ class Executor:
 
     def _command_get(self) -> str:
         changelog = self.changelog
-        record_name = self.config.name
+        record_name = self._config.name
         if record_name == UNRELEASED:
             record = changelog.get_unreleased()
         elif record_name == LATEST:
@@ -211,9 +233,9 @@ class Executor:
         if record is None:
             return ""
 
-        if self.config.section == SECTION_ALL:
+        if self._config.section == SECTION_ALL:
             return record.render()
-        section = RecordBody.parse(record.body).get_section(self.config.section)
+        section = record.body.get_section(self._config.section)
         if section:
             return section.body
 
@@ -229,36 +251,36 @@ class Executor:
         return "\n".join([i.version.dumps() for i in records])
 
     def _command_version(self) -> str:
-        old_version: Version = self.config.version
+        old_version: Version = self._config.version
         if self.input:
             record_body = RecordBody.parse(self.input)
         else:
-            record_body = RecordBody.parse(self.changelog.get_unreleased().body)
+            record_body = self.changelog.get_unreleased().body
 
         return record_body.bump_version(old_version).dumps()
 
     def _command_rc_version(self) -> str:
-        old_version: Version = self.config.version
+        old_version: Version = self._config.version
         if self.input:
             record_body = RecordBody.parse(self.input)
         else:
-            record_body = RecordBody.parse(self.changelog.get_unreleased().body)
+            record_body = self.changelog.get_unreleased().body
 
         return record_body.bump_rc_version(old_version).dumps()
 
     def _command_release(self) -> str:
         changelog = self.changelog
-        record = changelog.get_record(self.config.version)
+        record = changelog.get_record(self._config.version)
 
         if record is None:
-            record = Record(self.config.version, "", self.get_today())
+            record = Record(self._config.version, "", self.get_today())
 
-        if self.config.created:
-            record.created = self.config.created
+        if self._config.created:
+            record.created = self._config.created
 
         unreleased = changelog.get_unreleased()
-        record.merge_body(unreleased.body)
-        unreleased.body = ""
+        record.merge(unreleased.body)
+        unreleased.body.clear()
 
         changelog.update_release(record)
         self.save_changelog(changelog)

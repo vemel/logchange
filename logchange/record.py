@@ -1,34 +1,66 @@
+"""
+Release record.
+"""
 import logging
-from typing import Tuple, Type, TypeVar
+from typing import Optional, Tuple, Type, TypeVar
 
 from newversion import Version
 
+from logchange.constants import LOGGER_NAME, SECTION_TITLES
 from logchange.record_body import RecordBody
+from logchange.record_section import RecordSection
 from logchange.utils import dedent
 
 _R = TypeVar("_R", bound="Record")
 
 
 class Record:
+    """
+    Release record.
+
+    Arguments:
+        version -- Release version
+        text -- Release notes
+        created -- Release date
+    """
+
     PARTS_DELIM = "\n"
 
     def __init__(
         self,
         version: Version,
-        body: str,
+        text: str,
         created: str,
     ):
-        self.version = version
-        self.created = created
-        self.body = body
-        self.logger = logging.getLogger("logchange")
+        self._logger = logging.getLogger(LOGGER_NAME)
+        self.version: Version = version
+        self.created: str = created
+        self._text = text
+        self._record_body: Optional[RecordBody] = None
 
     @property
     def name(self) -> str:
+        """
+        Release version as tag.
+        """
         if self.version == Version.zero():
             return "[Unreleased]"
 
         return f"[{self.version.dumps()}]"
+
+    @property
+    def body(self) -> RecordBody:
+        """
+        Release body.
+        """
+        if self._record_body is None:
+            self._record_body = RecordBody.parse(self._text)
+
+        return self._record_body
+
+    @body.setter
+    def body(self, value: RecordBody):
+        self._record_body = value
 
     def _render_title(self) -> str:
         if self.version == Version.zero():
@@ -40,7 +72,13 @@ class Record:
         return f"## [{self.version}]"
 
     def render(self) -> str:
-        parts = [self._render_title(), self.body]
+        """
+        Render as text.
+        """
+        body = self._text
+        if self._record_body:
+            body = self._record_body.render()
+        parts = [self._render_title(), body]
         parts = [i for i in parts if i]
         return self.PARTS_DELIM.join(parts)
 
@@ -55,9 +93,18 @@ class Record:
 
     @classmethod
     def parse(cls: Type[_R], text: str) -> _R:
+        """
+        Parse from text.
+
+        Arguments:
+            text -- Record text to parse.
+
+        Returns:
+            New Record.
+        """
         text = dedent(text)
         if not text:
-            return cls(Version.zero(), created="", body="")
+            return cls(Version.zero(), created="", text="")
 
         try:
             title, lines = text.split("\n", 1)
@@ -69,63 +116,69 @@ class Record:
         return cls(
             version=Version(version),
             created=created,
-            body=lines,
+            text=lines,
         )
 
     def is_empty(self) -> bool:
-        return self.body.strip() == ""
+        """
+        Whether release has no text.
+        """
+        return self.body.is_empty()
 
-    def set_section(self, title: str, body: str) -> None:
-        record_body = RecordBody.parse(self.body)
-        section = record_body.get_section(title)
-        was_empty = section.is_empty()
-        section.body = body
-        record_body.set_section(title, body)
-        self.body = record_body.render()
-        if was_empty:
-            if body:
-                self.logger.info(f"{self.name} `{section.name}` section added")
-        else:
-            if body:
-                self.logger.info(f"{self.name} `{section.name}` section overwritten")
-            else:
-                self.logger.info(f"{self.name} `{section.name}` section deleted")
+    def set_section(self, title: str, text: str) -> None:
+        """
+        Uverwrite release section.
 
-    def append_section(self, title: str, body: str) -> None:
-        record_body = RecordBody.parse(self.body)
-        section = record_body.get_section(title)
-        was_empty = section.is_empty()
-        section.append_lines(body)
-        self.body = record_body.render()
-        if was_empty:
-            if body:
-                self.logger.info(f"{self.name} `{section.name}` section added")
-        elif body:
-            self.logger.info(f"{self.name} `{section.name}` section updated")
+        Arguments:
+            title -- Section title.
+            text -- Section text.
+        """
+        old_body = self.body.clone()
+        self.body.set_section(title, text)
+        self._log_changes(old_body)
+
+    def append_section(self, title: str, text: str) -> None:
+        """
+        Append new lines to release notes.
+
+        Arguments:
+            title -- Section title.
+            text -- Section text to append.
+        """
+        new_record = RecordBody(sections=[RecordSection(title, text)])
+        self.merge(new_record)
 
     def set_body(self, text: str) -> None:
-        old_body = RecordBody.parse(self.body)
-        new_body = RecordBody.parse(text)
-        self.body = new_body.render()
-        self.log_changes(old_body, new_body)
+        """
+        Change record body to `text`.
 
-    def merge_body(self, text: str) -> None:
-        old_body = RecordBody.parse(self.body)
-        change_body = RecordBody.parse(text)
-        new_body = old_body.merge(change_body)
-        self.body = new_body.render()
-        self.log_changes(old_body, new_body)
+        Logs changes.
+        """
+        old_body = self.body.clone()
+        self._record_body = RecordBody.parse(text)
+        self._log_changes(old_body)
 
-    def log_changes(self, old_body: RecordBody, new_body: RecordBody) -> None:
-        for section_name, old_section in old_body.sections.items():
-            new_section = new_body.get_section(section_name)
+    def merge(self, record_body: RecordBody) -> None:
+        """
+        Merge `record_body` to body of the record.
+
+        Logs changes.
+        """
+        old_body = self.body.clone()
+        self._record_body = old_body.get_merged(record_body)
+        self._log_changes(old_body)
+
+    def _log_changes(self, old_body: RecordBody) -> None:
+        for section_title in SECTION_TITLES:
+            old_section = old_body.get_section(section_title)
+            new_section = self.body.get_section(section_title)
             if new_section.body == old_section.body:
                 continue
             if old_section.is_empty():
                 if not new_section.is_empty():
-                    self.logger.info(f"{self.name} `{new_section.name}` section added")
+                    self._logger.info(f"{self.name} `{new_section.title}` section added")
             else:
                 if new_section.is_empty():
-                    self.logger.info(f"{self.name} `{new_section.name}` section deleted")
+                    self._logger.info(f"{self.name} `{new_section.title}` section deleted")
                 else:
-                    self.logger.info(f"{self.name} `{new_section.name}` section updated")
+                    self._logger.info(f"{self.name} `{new_section.title}` section updated")

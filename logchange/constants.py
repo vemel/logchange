@@ -1,3 +1,5 @@
+LOGGER_NAME = "logchange"
+
 SECTION_TITLES = ["added", "changed", "deprecated", "removed", "fixed", "security"]
 MAJOR_SECTION_TITLES = {"removed"}
 MINOR_SECTION_TITLES = {"added", "changed", "deprecated"}
