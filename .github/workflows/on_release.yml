@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: "3.9"
       - name: Get Release tag
@@ -66,8 +66,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.result }}
-          REPO_OWNER: ${{ context.repo.owner }}
-          REPO: ${{ context.repo.repo }}
+          REPO_OWNER: ${{ github.context.repo.owner }}
+          REPO: ${{ github.context.repo.repo }}
         run: |
           git config --global user.email "volshebnyi@gmail.com"
           git config --global user.name "${GITHUB_ACTOR}"
