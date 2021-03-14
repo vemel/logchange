@@ -56,16 +56,18 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.result }}
         run: |
-          if [[-f pyproject.toml ]]; then
+          if [[-f "pyproject.toml" ]]; then
             sed -i -E "s/^version\s*=\s*\".+/version = \"${VERSION}\"/" pyproject.toml
           fi
-          if [[-f setup.cfg ]]; then
+          if [[-f "setup.cfg" ]]; then
             sed -i -E "s/^version \s*=\s*.+/version = ${VERSION}/" setup.cfg
           fi
       - name: Commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.result }}
+          REPO_OWNER: ${{ context.repo.owner }}
+          REPO: ${{ context.repo.repo }}
         run: |
           git config --global user.email "volshebnyi@gmail.com"
           git config --global user.name "${GITHUB_ACTOR}"
@@ -73,7 +75,7 @@ jobs:
           git add setup.cfg
           git add CHANGELOG.md
           git commit -m "Bump version to ${VERSION}"
-          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${{ github.context.repo.owner }}/${{ github.context.repo.repo }}.git HEAD:main
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${REPO_OWNER}/${REPO}.git HEAD:main
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "${{ secrets.PYPI_USERNAME }}"
