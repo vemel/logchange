@@ -30,6 +30,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
+            console.log(context);
             const result = context.payload.release.body
             console.log(result)
             return result
@@ -66,6 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.result }}
+          CONTEXT: ${{ github.context }}
           REPO_OWNER: ${{ github.context.repo.owner }}
           REPO: ${{ github.context.repo.repo }}
         run: |
