@@ -30,7 +30,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
-            console.log(context);
             const result = context.payload.release.body
             console.log(result)
             return result
@@ -49,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install -U wheel logchange newversion
+          python -m pip install -U wheel logchange newversion twine
       - name: Get Release version
         id: version
         env:
