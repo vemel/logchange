@@ -68,12 +68,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.result }}
         run: |
-          if [[-f "pyproject.toml" ]]; then
-            sed -i -E "s/^version\s*=\s*\".+/version = \"${VERSION}\"/" pyproject.toml
-          fi
-          if [[-f "setup.cfg" ]]; then
-            sed -i -E "s/^version \s*=\s*.+/version = ${VERSION}/" setup.cfg
-          fi
+          test -f "pyproject.toml" && sed -i -E "s/^version\s*=\s*\".+/version = \"${VERSION}\"/" pyproject.toml
+          test -f "setup.cfg" && sed -i -E "s/^version \s*=\s*.+/version = ${VERSION}/" setup.cfg
       - name: Commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
