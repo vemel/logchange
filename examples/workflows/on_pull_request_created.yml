@@ -32,7 +32,7 @@ jobs:
             const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}/commits', {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ context.payload.number }}
+              pull_number: ${{ github.context.payload.number }}
             });
             response.forEach(commit => result.push(commit.commit.message));
             console.log(result);
@@ -40,7 +40,7 @@ jobs:
       - name: Get new Pull Request body
         id: body
         env:
-          BODY: ${{ context.payload.pull_request.body }}
+          BODY: ${{ github.context.payload.pull_request.body }}
           COMMITS: ${{ steps.commits.outputs.result }}
         run: |
           RESULT=`python -m logchange format -i "${BODY}\n${COMMITS}"``
@@ -59,6 +59,6 @@ jobs:
             const response = await github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ context.pull_request.number }}
+              pull_number: ${{ github.context.pull_request.number }}
               body: process.env.BODY,
             });

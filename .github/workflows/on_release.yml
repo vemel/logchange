@@ -17,7 +17,7 @@ jobs:
         uses: actions/github-script@v3
         id: tag
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
             const result = context.payload.release.tag_name
@@ -27,7 +27,7 @@ jobs:
         uses: actions/github-script@v3
         id: body
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
             const result = context.payload.release.body
@@ -73,7 +73,7 @@ jobs:
           git add setup.cfg
           git add CHANGELOG.md
           git commit -m "Bump version to ${VERSION}"
-          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${{ context.repo.owner }}/${{ context.repo.repo }}.git HEAD:main
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${{ github.context.repo.owner }}/${{ github.context.repo.repo }}.git HEAD:main
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "${{ secrets.PYPI_USERNAME }}"
