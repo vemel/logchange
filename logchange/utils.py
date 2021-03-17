@@ -1,5 +1,4 @@
 import textwrap
-from pathlib import Path
 
 
 def strip_empty_lines(text: str) -> str:
@@ -20,23 +19,3 @@ def dedent(text: str) -> str:
     Dendent text and remove empty lines from beginning and end.
     """
     return textwrap.dedent(strip_empty_lines(text))
-
-
-def print_path(path: Path) -> str:
-    """
-    Print path relative to current workdir
-    """
-    if path.is_absolute():
-        cwd = Path.cwd()
-        if path == cwd or path.parts <= cwd.parts:
-            return str(path)
-
-        try:
-            path = path.relative_to(cwd)
-        except ValueError:
-            return str(path)
-
-    if len(path.parts) == 1:
-        return f"./{path}"
-
-    return str(path)

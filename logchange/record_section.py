@@ -20,7 +20,18 @@ class RecordSection:
             raise ValueError(f"Invalid section title: {title}")
 
         self.title: str = title
-        self.body: str = body
+        self._body: str = dedent(body)
+
+    @property
+    def body(self) -> str:
+        """
+        Section body.
+        """
+        return self._body
+
+    @body.setter
+    def body(self, value: str) -> None:
+        self._body = dedent(value)
 
     @staticmethod
     def is_valid_title(title: str) -> bool:
@@ -39,13 +50,16 @@ class RecordSection:
         """
         Render in Keep a Changelog format.
         """
-        return f"### {self.title.capitalize()}\n{dedent(self.body)}"
+        if self.is_empty():
+            return f"### {self.title.capitalize()}"
+
+        return f"### {self.title.capitalize()}\n{self.body}"
 
     def append(self, text: str) -> None:
         """
         Append `text` to section body.
         """
-        self.body = dedent(f"{self.body}{text}")
+        self.body = f"{self.body}{text}"
 
     def append_lines(self, text: str) -> None:
         """

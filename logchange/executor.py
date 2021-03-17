@@ -7,13 +7,13 @@ import logging
 from pathlib import Path
 
 from newversion import Version
+from newversion.eol_fixer import EOLFixer
+from newversion.utils import print_path
 
 from logchange.changelog import ChangeLog
 from logchange.constants import LATEST, LOGGER_NAME, NEW_CHANGELOG, SECTION_ALL, UNRELEASED
-from logchange.eol_fixer import EOLFixer
 from logchange.record import Record
 from logchange.record_body import RecordBody
-from logchange.utils import print_path
 
 
 class ExecutorError(Exception):
@@ -32,7 +32,7 @@ class Executor:
 
     def __init__(self, config: argparse.Namespace) -> None:
         self._config = config
-        self._windows_le = False
+        self._is_crlf_le = False
         self._logger = logging.getLogger(LOGGER_NAME)
 
     @property
@@ -40,8 +40,8 @@ class Executor:
         """
         Pipe-in input.
         """
-        self._windows_le = EOLFixer.is_windows(self._config.input)
-        return EOLFixer.to_unix(self._config.input)
+        self._is_crlf_le = EOLFixer.is_crlf(self._config.input)
+        return EOLFixer.to_lf(self._config.input)
 
     @property
     def changelog_path(self) -> Path:
@@ -67,8 +67,8 @@ class Executor:
             return ChangeLog.parse(NEW_CHANGELOG)
 
         text = self.changelog_path.read_text()
-        self._windows_le = EOLFixer.is_windows(text)
-        return ChangeLog.parse(EOLFixer.to_unix(text))
+        self._is_crlf_le = EOLFixer.is_crlf(text)
+        return ChangeLog.parse(EOLFixer.to_lf(text))
 
     def save_changelog(self, changelog: ChangeLog) -> None:
         """
@@ -84,10 +84,10 @@ class Executor:
         return self._config.name
 
     def _fix_eol(self, text: str) -> str:
-        if not self._windows_le:
+        if not self._is_crlf_le:
             return text
 
-        return EOLFixer.to_windows(text)
+        return EOLFixer.to_crlf(text)
 
     @staticmethod
     def _as_md_list(text: str) -> str:
@@ -145,8 +145,8 @@ class Executor:
             return ""
 
         text = self.changelog_path.read_text()
-        self._windows_le = EOLFixer.is_windows(text)
-        changelog = ChangeLog.parse(EOLFixer.to_unix(text))
+        self._is_crlf_le = EOLFixer.is_crlf(text)
+        changelog = ChangeLog.parse(EOLFixer.to_lf(text))
         changelog.format_released()
         new_text = changelog.render()
         if new_text == text:
