@@ -51,4 +51,4 @@ class RecordSection:
         """
         Append `text` to section body after new line.
         """
-        self.append(f"\n{text}")
+        self.append(f"\n{dedent(text)}")

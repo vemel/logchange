@@ -45,15 +45,11 @@ class RecordBody:
         """
         Bump version based on present changelog sections.
         """
-        for major_title in MAJOR_SECTION_TITLES:
-            section = self.get_section(major_title)
-            if section and not section.is_empty():
-                return old_version.bump_major()
-
-        for major_title in MINOR_SECTION_TITLES:
-            section = self.get_section(major_title)
-            if section and not section.is_empty():
-                return old_version.bump_minor()
+        section_titles = {i.title for i in self.sections}
+        if section_titles & MAJOR_SECTION_TITLES:
+            return old_version.bump_major()
+        if section_titles & MINOR_SECTION_TITLES:
+            return old_version.bump_minor()
 
         return old_version.bump_micro()
 
@@ -226,13 +222,16 @@ class RecordBody:
         self.prefix = ""
         self.postfix = ""
 
+    def __copy__(self: _R) -> _R:
+        return self.__class__(
+            prefix=self.prefix, postfix=self.postfix, sections=(i for i in self.sections)
+        )
+
     def clone(self: _R) -> _R:
         """
         Get a copy of record body.
         """
-        return self.__class__(
-            prefix=self.prefix, postfix=self.postfix, sections=(i for i in self.sections)
-        )
+        return self.__copy__()
 
     def clear(self) -> None:
         """
