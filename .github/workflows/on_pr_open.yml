@@ -1,0 +1,58 @@
+name: Assign Pull Request labels
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  assing-pr-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -U logchange
+      - name: Format Pull Request notes
+        id: notes
+        env:
+          NOTES: ${{ github.context.issue.body }}
+        run: |
+          RESULT=`echo $NOTES | python -m logchange format`
+          echo $RESULT
+          echo "::set-output name=result::${RESULT}"
+      - name: Build labels
+        uses: actions/github-script@v3
+        id: labels
+        env:
+          NOTES: ${{ steps.notes.outputs.result }}
+        with:
+          script: |
+            const issue = context.issue;
+            const managedLabels = ['patch', 'minor', 'major'];
+            let label = "patch";
+            for (const line of issue.body.split(/\r?\n/)) {
+              if (line === "### Added") label = "minor";
+              if (line === "### Changed") label = "minor";
+              if (line === "### Removed") label = "major";
+            }
+
+            const labels = issue.labels.map(data => data.name).filter(label => !managedLabels.includes(label))
+            return [...labels, label]
+      - name: Assign labels
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const labels = ${{ steps.labels.outputs.result }}
+            console.log('Assigned labels', labels);
+
+            await github.issues.replaceAllLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            })

@@ -5,16 +5,16 @@ on:
     branches:
       - main
     paths:
-      - logchange/**
+      - newversion/**
       - tests/**
 
 jobs:
-  build:
+  unit-tests-coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: "3.9"
       - name: Install dependencies
@@ -26,5 +26,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          pytest --cov-report term --cov logchange
+          pytest --cov-report term --cov
           codecov

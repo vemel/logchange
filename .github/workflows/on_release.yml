@@ -1,4 +1,4 @@
-name: Bump version, update CHANGELOG.md and publish
+name: Create Release Pull Request
 
 on:
   release:
@@ -82,8 +82,11 @@ jobs:
           git add pyproject.toml
           git add setup.cfg
           git add CHANGELOG.md
+          git checkout -b release/${VERSION}
           git commit -m "Bump version to ${VERSION}"
-          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${REPO} HEAD:${BRANCH}
+          git tag ${VERSION}-release
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${REPO}.git HEAD:release/${VERSION}
+          git push --tags https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${REPO}.git HEAD:release/${VERSION}
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "${{ secrets.PYPI_USERNAME }}"
